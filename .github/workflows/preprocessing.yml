@@ -1,0 +1,49 @@
+name: Automated Preprocessing
+
+permissions:
+  contents: write
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  preprocessing:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run Preprocessing
+        run: |
+          python preprocessing/automate_Michelia.py
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: adult-census-income-preprocessing
+          path: preprocessing/adult_preprocessed.csv
+
+      - name: Commit Dataset
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          git add preprocessing/adult_preprocessed.csv
+
+
+          git diff --staged --quiet || git commit -m "Auto update preprocessing dataset"
+
+          git push
